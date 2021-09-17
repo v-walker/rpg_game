@@ -1,14 +1,11 @@
 import random
 
-
 class Character:
-    damage = False
     def __init__(self, name, health, power):
         self.name = name
         self.health = health
         self.power = power
         
-
     def alive(self):
         life = True
         if self.health <= 0:
@@ -19,16 +16,27 @@ class Character:
         if opponent.name == "Shadow":
             num = random.randint(1, 10)
             if num == 1:
-                damage = True
-                if damage == True:
-                    opponent.health -= self.power
-                    print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
+                opponent.health -= self.power
+                print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")  
             else:
                 opponent.health -= 0
                 print(f"\n{opponent.name} dodged {self.name}'s attack!")
+
+        elif opponent.name == "Vampire":
+            num = random.randint(1, 3)
+            if num == 1:
+                opponent.health -= round(self.power/2)
+                print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
+            elif num == 2:
+                opponent.health -= 0
+                print(f"\n{opponent.name} transformed into a bat and dodged {self.name}'s attack!")
+            else:
+                opponent.health -= self.power
+                print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
         else:
             opponent.health -= self.power
             print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
+        
         if opponent.alive == False:
             print(f"\nThe {opponent.name} is dead.")
 
@@ -69,7 +77,7 @@ class Goblin(Character):
 class Zombie(Character):
     def __init__(self, name, health, power):
         super().__init__(name, health, power)
-        
+
     def alive(self):
         revived_health = 15
         life = True
@@ -81,6 +89,27 @@ class Zombie(Character):
             print(f"Oh no! The {self.name} regains its health! It's getting back up!")
             self.health += revived_health
         return life
+
+class Vampire(Character):
+    def __init__(self, name, health, power):
+        super().__init__(name, health, power)
+
+class Bugbear(Character):
+    def __init__(self, name, health, power, helper):
+        super().__init__(name, health, power)
+        self.helper = helper
+
+    def attack(self, opponent):
+        num = random.randint(1, 5)
+        if num == 1:
+            self.power += self.helper.power
+            opponent.health -= self.power
+            print(f"\nThe {self.name} attacks along with a goblin and does {self.power} damage to {opponent.name}.")
+        else:
+            opponent.health -= self.power
+            print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
+        if opponent.alive == False:
+            print(f"\nThe {opponent.name} is dead.")
 
 def invalid_choice():
     print("Invalid choice. Try again")
@@ -96,32 +125,41 @@ def main():
     
     monsters = []
     goblin = Goblin("Goblin", 6, 2)
-    monster = Zombie("Zombie", 15, 2)
+    zombie = Zombie("Zombie", 15, 1)
+    vampire = Vampire("Vampire", 20, 4)
+    bugbear = Bugbear("Bugbear", 18, 3, goblin)
     monsters.append(goblin)
-    monsters.append(monster)
-
-    print(f"You open the door to the dungeon, and you see {len(monsters)} deadly creatures before you.")
+    monsters.append(zombie)
+    monsters.append(vampire)
+    monsters.append(bugbear)
     
     char_choice = False
-    
+
+    print("\nAre you ready for an adventure? Let's start with choosing a player character!")
+
     while char_choice == False:
         choice = int(input("""\nChoose your player character:
 1. Paladin
-2. Medic
+2. Dwarf Cleric
 3. Shadow
 >     """))
         if char_choice <= len(player_chars) and choice >= 0:
             player_char = player_chars[choice - 1]
             char_choice = True
+            print(f"\nYou chose {player_char.name}. Let's go slay some monsters...")
         else: 
             invalid_choice()
-    
+
+    print(f"\nYou open the door to the dungeon, and you see {len(monsters)} deadly creatures before you.")
+
     opp_choice = False
     # choose an opponent
     while opp_choice == False:
         choice = int(input("""\nChoose your opponent: 
 1. Goblin
 2. Zombie
+3. Vampire
+4. Bugbear
 >     """))
         if choice <= len(monsters) and choice >= 0:
             monster = monsters[choice - 1]
