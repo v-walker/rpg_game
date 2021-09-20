@@ -60,7 +60,7 @@ class Character:
                 self.critical_attack(opponent)
             else:
                 self.default_attack(opponent) 
-        elif opponent.name == "Vampire" or (opponent.evasion >= 10 and opponent.evasion <= 13):
+        elif opponent.name == "Vampire" and (opponent.evasion >= 10 and opponent.evasion <= 13):
             num = random.randint(1, 3)
             if num == 1:
                 opponent.health -= round(self.power/2)
@@ -99,6 +99,9 @@ class Character:
             else:
                 self.default_attack(opponent)
         
+        if self.name == "Dwarf Cleric":
+            self.recuperate_health()
+
         if opponent.alive == False:
             print(f"\nThe {opponent.name} is dead.")
 
@@ -370,10 +373,12 @@ def invalid_choice():
 def choose_player_char():
     char_choice = False
     while char_choice == False:
-        choice = int(input("""\nChoose your player character:
-1. Paladin
-2. Dwarf Cleric
-3. Shadow
+        choice = int(input("""\nChoose your player character -
+    Name:                               Description:
+
+1. Paladin          an overall well-rounded character with chance of critical attack
+2. Dwarf Cleric     moderately powerful with the ability to healh oneself
+3. Shadow           a real wild-card; a great choice if you seek danger and risk-taking
 >     """))
         if choice == 1:
             player_char = Hero("Paladin", 10, 5, 0, 1, 15, [], 0)
@@ -392,14 +397,16 @@ def choose_player_char():
 def choose_opponent():
     opp_choice = False
     while opp_choice == False:
-        choice = int(input("""\nChoose your opponent: 
-1. Goblin
-2. Zombie
-3. Vampire
-4. Bugbear
+        choice = int(input("""\nChoose your opponent- 
+    Name:            Bounty:
+
+1. Goblin              3 coins
+2. Zombie              10 coins
+3. Vampire             6 coins
+4. Bugbear             10 coins
 >     """))
         if choice == 1:
-            monster = Goblin("Goblin", 6, 2, 0, 1, 5, [], 2)
+            monster = Goblin("Goblin", 6, 2, 0, 1, 3, [], 2)
             opp_choice = True
         elif choice == 2:
             monster = Zombie("Zombie", 15, 1, 0, 1, 10, [], 2)
@@ -431,7 +438,8 @@ def main():
     
         if player_char.level > 1:
             player_char.show_all_stats()
-        
+        elif player_char.level == 1:
+            print("\nYou're off to a great start... I can feel it! Let's decide what to do next!")
         player_char.choose_action()
         
         # choose an opponent
@@ -484,7 +492,9 @@ def main():
                     time.sleep(1.5)
                     next_monster = input("\nWould you like to continue your adventure? Enter 'y' for 'yes' or 'n' to exit the game: ")
                     if next_monster == "y":
+                        print("Great! There are so many more monsters to vanquish, and the townsfolk really need your help.\n ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
                         player_char.level += 1
+                        time.sleep(2)
                         play_again = True
                     
                     elif next_monster == "n":
