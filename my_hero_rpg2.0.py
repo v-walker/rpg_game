@@ -32,38 +32,35 @@ class Character:
         num = random.randint(1, 5)
         if num == 1:
             opponent.health -= (self.power * 2)
+            print(f"\nThe {self.name} attacks and does {self.power * 2} damage to {opponent.name}.")
         else: self.default_attack(opponent)
-        print(f"\nThe {self.name} attacks and does {self.power * 2} damage to {opponent.name}.")
 
     def attack(self, opponent):
         if opponent.name == "Shadow" or opponent.evasion >= 33:
             num = random.randint(1, 10)
             if num >= 2:
                 self.dodged_attack(opponent)
+            elif self.name == "Paladin":
+                self.critical_attack(opponent)
             else:
-                if self.name == "Paladin":
-                    self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent)
+                self.default_attack(opponent)
         elif opponent.evasion >= 18:
             num = random.randint(1, 2)
             if num == 1:
                 opponent.dodged_attack(opponent)
+            elif self.name == "Paladin":
+                self.critical_attack(opponent)
             else:
-                if self.name == "Paladin":
-                    self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent)
+                self.default_attack(opponent)
         elif opponent.evasion >= 14:
             num = random.randint(1, 5)
             if num < 3:
                 self.dodged_attack(opponent)
+            elif self.name == "Paladin":
+                self.critical_attack(opponent)
             else:
-                if self.name == "Paladin":
-                    self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent) 
-        elif opponent.name == "Vampire" or (opponent.evasion >= 10 and opponent.evasion <= 11):
+                self.default_attack(opponent) 
+        elif opponent.name == "Vampire" or (opponent.evasion >= 10 and opponent.evasion <= 13):
             num = random.randint(1, 3)
             if num == 1:
                 opponent.health -= round(self.power/2)
@@ -76,29 +73,26 @@ class Character:
             num = random.randint(1, 3)
             if num == 1:
                 self.dodged_attack(opponent)
+            elif self.name == "Paladin":
+                self.critical_attack(opponent)
             else:
-                if self.name == "Paladin":
-                    self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent)
+                self.default_attack(opponent)
         elif opponent.evasion >= 6:
             num = random.randint(1, 5)
             if num == 1:
                 self.dodged_attack(opponent)
+            elif self.name == "Paladin":
+                self.critical_attack(opponent)
             else:
-                if self.name == "Paladin":
-                    self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent)
+                self.default_attack(opponent)
         elif opponent.evasion >= 2:
             num = random.randint(1, 10)
             if num == 1:
                 self.dodged_attack(opponent)
-            else:
-                if self.name == "Paladin":
+            elif self.name == "Paladin":
                     self.critical_attack(opponent)
-                else:
-                    self.default_attack(opponent)
+            else:
+                self.default_attack(opponent)
         else:
             if self.name == "Paladin":
                     self.critical_attack(opponent)
@@ -140,6 +134,19 @@ class Character:
             self.inc_evade(0.5)
         elif item_obj.name == "Super-Mega Tonic":
             self.restore_health(50)
+    
+    def select_item(self):
+        print("Which item would you like to choose?: ")
+        self.print_inventory()
+        print("\nEnter the number of the item you wish to use.")
+        item_choice = (int(input("> ")) - 1)
+        if item_choice <= len(self.backpack):
+            item_obj = self.backpack[item_choice]
+            print(f"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nYou have chosen to use {item_obj.name}.")
+            self.use_item(item_obj)
+            del self.backpack[item_choice]
+        else:
+            print("Invalid input. Try again.")
 
     def choose_action(self):
         make_choice = True
@@ -168,21 +175,21 @@ class Character:
             elif choice == 4 and len(self.backpack) == 0:
                 print("\nSorry, you do not have any items. You can buy items at the store.")
             elif choice == 4 and len(self.backpack) > 0:
-                print("Which item would you like to choose?: ")
-                self.print_inventory()
-                print("\nEnter the number of the item you wish to use.")
-                item_choice = (int(input("> ")) - 1)
-                if item_choice <= len(self.backpack):
-                    item_obj = self.backpack[item_choice]
-                    print(f"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nYou have chosen to use {item_obj.name}.")
-                    self.use_item(item_obj)
-                    del self.backpack[item_choice]
-                else:
-                    print("Invalid input. Try again.")
+                self.select_item()
+                # print("Which item would you like to choose?: ")
+                # self.print_inventory()
+                # print("\nEnter the number of the item you wish to use.")
+                # item_choice = (int(input("> ")) - 1)
+                # if item_choice <= len(self.backpack):
+                #     item_obj = self.backpack[item_choice]
+                #     print(f"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nYou have chosen to use {item_obj.name}.")
+                #     self.use_item(item_obj)
+                #     del self.backpack[item_choice]
+                
 
     def restore_health(self, power):
         self.health += power
-        print("Your health has increased by ten points!")
+        print(f"Your health has increased by {power} points!")
         self.show_base_stats()
 
     def armor_up(self):
@@ -295,21 +302,60 @@ class Vampire(Character):
         super().__init__(name, health, power, armor, level, coins, backpack, evasion)
 
 class Bugbear(Character):
-    def __init__(self, name, health, power, armor, level, coins, backpack, helper, evasion):
+    def __init__(self, name, health, power, armor, level, coins, backpack, evasion, helper):
         super().__init__(name, health, power, armor, level, coins, backpack, evasion)
         self.helper = helper
 
-    def attack(self, opponent):
+    def bugbear_attack(self, opponent):
         num = random.randint(1, 5)
-        if num == 1:
-            self.power += self.helper.power
-            opponent.health -= self.power
-            print(f"\nThe {self.name} attacks along with a goblin and does {self.power} damage to {opponent.name}.")
+        if num < 4:
+            opponent.health -= self.power + self.helper.power
+            print(f"\nThe {self.name} attacks along with a goblin and does {self.power + self.helper.power} damage to {opponent.name}.")
         else:
             opponent.health -= self.power
             print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
         if opponent.alive == False:
             print(f"\nThe {opponent.name} is dead.")
+
+    def attack(self, opponent):
+        if opponent.evasion >= 33:
+            num = random.randint(1, 10)
+            if num >= 2:
+                self.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        elif opponent.evasion >= 18:
+            num = random.randint(1, 2)
+            if num == 1:
+                opponent.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        elif opponent.evasion >= 14:
+            num = random.randint(1, 5)
+            if num < 3:
+                self.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        elif opponent.evasion >= 10:
+            num = random.randint(1, 3)
+            if num == 1:
+                self.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        elif opponent.evasion >= 6:
+            num = random.randint(1, 5)
+            if num == 1:
+                self.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        elif opponent.evasion >= 2:
+            num = random.randint(1, 10)
+            if num == 1:
+                self.dodged_attack(opponent)
+            else:
+                self.bugbear_attack(opponent)
+        else:
+            self.bugbear_attack(opponent)
 
 
 class Item:
@@ -362,7 +408,7 @@ def choose_opponent():
             monster = Vampire("Vampire", 20, 4, 0, 1, 6, [], 2)
             opp_choice = True
         elif choice == 4:
-            monster = Bugbear("Bugbear", 18, 3, 0, 1, 8, [], 2, Goblin("Goblin", 6, 2, 5))
+            monster = Bugbear("Bugbear", 18, 3, 0, 1, 10, [], 2, Goblin("Goblin", 6, 2, 0, 1, 5, [], 2))
             opp_choice = True
         else:
             invalid_choice()
@@ -418,7 +464,8 @@ def main():
             elif select_action == "3":
                 print("\nThat was close, but you made it out alive! Maybe stick to smaller monsters for now...")
                 break
-            # Add in action 4 "Use an item"
+            elif select_action == "4":
+                player_char.select_item()
             else:
                 print(f"Invalid input '{select_action}'.")
 
