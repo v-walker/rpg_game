@@ -1,8 +1,6 @@
 import random
 import time
 
-# add in armor logic
-
 class Character:
     coin_bank = 10
 
@@ -23,62 +21,89 @@ class Character:
         return life
 
     def default_attack(self, opponent):
-        opponent.health -= self.power
+        armored_damage = self.power - opponent.armor
+        opponent.health -= armored_damage
         print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
 
     def dodged_attack(self, opponent):
-        opponent.health -= 0
         print(f"\n{opponent.name} dodged {self.name}'s attack!")
+
+    def critical_attack(self, opponent):
+        num = random.randint(1, 5)
+        if num == 1:
+            opponent.health -= (self.power * 2)
+        else: self.default_attack(opponent)
+        print(f"\nThe {self.name} attacks and does {self.power * 2} damage to {opponent.name}.")
 
     def attack(self, opponent):
         if opponent.name == "Shadow" or opponent.evasion >= 33:
             num = random.randint(1, 10)
-            if num == 1:
-                self.default_attack(self, opponent)
+            if num >= 2:
+                self.dodged_attack(opponent)
             else:
-                self.dodged_attack(self, opponent)
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent)
         elif opponent.evasion >= 18:
             num = random.randint(1, 2)
             if num == 1:
-                self.default_attack(self, opponent)
+                opponent.dodged_attack(opponent)
             else:
-                self.dodged_attack(self, opponent)
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent)
         elif opponent.evasion >= 14:
             num = random.randint(1, 5)
-            if num == 1 or num == 2 or num == 3:
-                self.default_attack(self, opponent) 
+            if num < 3:
+                self.dodged_attack(opponent)
             else:
-                self.dodged_attack(self, opponent)
-        elif opponent.name == "Vampire" and (opponent.evasion >= 10 and opponent.evasion <= 11):
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent) 
+        elif opponent.name == "Vampire" or (opponent.evasion >= 10 and opponent.evasion <= 11):
             num = random.randint(1, 3)
             if num == 1:
                 opponent.health -= round(self.power/2)
                 print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
             elif num == 2:
-                self.default_attack(self, opponent)
+                self.default_attack(opponent)
             else:
-                self.dodged_attack(self, opponent)
+                self.dodged_attack(opponent)
         elif opponent.evasion >= 10:
             num = random.randint(1, 3)
             if num == 1:
-                self.dodged_attack(self, opponent)
+                self.dodged_attack(opponent)
             else:
-                self.default_attack(self, opponent)
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent)
         elif opponent.evasion >= 6:
             num = random.randint(1, 5)
             if num == 1:
-                self.dodged_attack(self, opponent)
+                self.dodged_attack(opponent)
             else:
-                self.default_attack(self, opponent)
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent)
         elif opponent.evasion >= 2:
             num = random.randint(1, 10)
             if num == 1:
-                self.dodged_attack(self, opponent)
+                self.dodged_attack(opponent)
             else:
-                self.default_attack(self, opponent)
+                if self.name == "Paladin":
+                    self.critical_attack(opponent)
+                else:
+                    self.default_attack(opponent)
         else:
-            opponent.health -= self.power
-            print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
+            if self.name == "Paladin":
+                    self.critical_attack(opponent)
+            else:
+                self.default_attack(opponent)
         
         if opponent.alive == False:
             print(f"\nThe {opponent.name} is dead.")
@@ -98,29 +123,35 @@ class Character:
         if len(self.backpack) == 0:
             print("You currently have no items.")
         else:
-            print("Here is a list of the items you are currently carrying: ")
+            print("\nHere is a list of the items you are currently carrying: ")
             for x in self.backpack:
                 print(f"{index}: {x.name}")
                 index += 1
 
     def use_item(self, item_obj):
         if item_obj.name == "Super Tonic":
-            self.restore_health()
+            self.restore_health(10)
         elif item_obj.name == "Armor":
             self.armor_up()
         elif item_obj.name == "Evade":
-            self.inc_evade()
+            self.inc_evade(2)
+        elif item_obj.name == "Really Cool Hat":
+            print("That's a nice hat you've got there! I wish I had one... \nYou seem a little more evasive while wearing that!")
+            self.inc_evade(0.5)
+        elif item_obj.name == "Super-Mega Tonic":
+            self.restore_health(50)
 
     def choose_action(self):
         make_choice = True
         while make_choice == True:
             print("""\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     What would you like to do?:
+
     1. Fight a monster
     2. View my items
     3. Buy an item
     4. Use an item
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n""")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n""")
 
             choice = int(input("> "))
 
@@ -132,20 +163,25 @@ class Character:
                 self.print_inventory()
             elif choice == 3:
                 print("Let's head to the town store!")
+                time.sleep(1.5)
                 self.buy_item()
             elif choice == 4 and len(self.backpack) == 0:
                 print("\nSorry, you do not have any items. You can buy items at the store.")
             elif choice == 4 and len(self.backpack) > 0:
                 print("Which item would you like to choose?: ")
                 self.print_inventory()
+                print("\nEnter the number of the item you wish to use.")
                 item_choice = (int(input("> ")) - 1)
-                item_obj = self.backpack[item_choice]
-                print(f"You have chosen to use {item_obj.name}.")
-                self.use_item(item_obj)
-                del self.backpack[item_choice]
+                if item_choice <= len(self.backpack):
+                    item_obj = self.backpack[item_choice]
+                    print(f"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nYou have chosen to use {item_obj.name}.")
+                    self.use_item(item_obj)
+                    del self.backpack[item_choice]
+                else:
+                    print("Invalid input. Try again.")
 
-    def restore_health(self):
-        self.health += 10
+    def restore_health(self, power):
+        self.health += power
         print("Your health has increased by ten points!")
         self.show_base_stats()
 
@@ -155,33 +191,35 @@ class Character:
         self.show_all_stats()
 
     # Build this out -- need to add evasion points to characters
-    def inc_evade(self):
-        self.evasion += 2
-        print("Your evasion points have increased by two!")
+    def inc_evade(self, power):
+        self.evasion += power
+        print(f"Your evasion points have increased by {power}!")
         self.show_all_stats()
 
     def add_item(self, special_item):
             self.coins -= special_item.cost
             self.backpack.append(special_item)
-            print(f"Success!\n{special_item.name} has been added to your backpack!")
+            print(f"\nSuccess!\n{special_item.name} has been added to your backpack!\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             item_choice = True
             return item_choice
 
     def buy_item(self):
         item_choice = False
-        print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nWelcome to the item shop. We have some great things here to help you out on your Journey!")
+        print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nWelcome to the Item Shop. We have many great things here to help you out on your journey!")
         time.sleep(1)
         print("Feel free to take a look around and let us know if you want to buy anything!")
         while item_choice == False:
-            choice = int(input("""\nChoose an item
-        Item:           Description:                    Cost:
+            choice = int(input("""\nChoose an item (enter the number of the item you wish to purchase)
 
-    1. Super Tonic     increase health                  10 coins
-    2. Armor           increase resistance to damage    15 coins
-    3. Evade           increase dodge probability       7 coins
-    4. 
-    5. 
-    6. Exit shop
+        Item:             Description:                    Cost:
+
+    1. Super Tonic       increase health                  10 coins
+    2. Armor             increase resistance to damage    15 coins
+    3. Evade             increase dodge probability       7 coins
+    4. Really Cool Hat   you will look awesome            5 coins
+    5. Super-Mega Tonic  increase health by a LOT         40 coins
+    
+    6. Or press 6 to exit shop
     """))
             if choice == 1 and self.coins >= 10:
                 special_item = Item("Super Tonic", 10)
@@ -192,12 +230,12 @@ class Character:
             elif choice == 3 and self.coins >= 7:
                 special_item = Item("Evade", 7)
                 self.add_item(special_item)
-            elif choice == 4 and self.coins >= 0:
-                item_choice = True
-                pass
+            elif choice == 4 and self.coins >= 5:
+                special_item = Item("Really Cool Hat", 5)
+                self.add_item(special_item)
             elif choice == 5 and self.coins >= 0:
-                item_choice = True
-                pass
+                special_item = Item("Super-Mega Tonic", 40)
+                self.add_item(special_item)
             elif choice == 6:
                 print("\nThanks for visiting. See you next time!\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
                 item_choice = True
@@ -207,16 +245,7 @@ class Character:
 class Hero(Character):
     def __init__(self, name, health, power, armor, level, coins, backpack, evasion):
         super().__init__(name, health, power, armor, level, coins, backpack, evasion)
-
-    def attack(self, opponent):
-        num = random.randint(1, 5)
-        if num == 1:
-            self.power = self.power * 2
-        opponent.health -= self.power
-        print(f"\nThe {self.name} attacks and does {self.power} damage to {opponent.name}.")
-        if opponent.alive == False:
-            print(f"\nThe {opponent.name} is dead.")
-
+        
 class Medic(Character):
     def __init__(self, name, health, power, armor, level, coins, backpack, evasion):
         super().__init__(name, health, power, armor, level, coins, backpack, evasion)
@@ -304,14 +333,14 @@ def choose_player_char():
             player_char = Hero("Paladin", 10, 5, 0, 1, 15, [], 0)
             char_choice = True
         elif choice == 2:
-            player_char = Medic("Dwarf Cleric", 10, 4, 5, 1, 15, [], 10)
+            player_char = Medic("Dwarf Cleric", 10, 4, 0.5, 1, 15, [], 10)
             char_choice = True
         elif choice == 3:
             player_char = Shadow("Shadow", 1, 6, 0, 1, 15, [], 33)
             char_choice = True
         else: 
             invalid_choice()
-    print(f"\nYou chose {player_char.name}. Your character is currently level {player_char.level}. You currently have {player_char.coins} coins. Let's go slay some monsters...")
+    print(f"\nYou chose {player_char.name}. Your character is currently level {player_char.level}. You currently have {player_char.coins} coins. \nLet's go!!!")
     return player_char
 
 def choose_opponent():
@@ -361,18 +390,24 @@ def main():
         
         # choose an opponent
         monster = choose_opponent()
+        if player_char.level > 1:
+                monster.power += player_char.level/2
+        else:
+            monster.power += 0
         
         while monster.alive() and player_char.alive():
             player_char.show_base_stats()
+            
             monster.show_base_stats()
             print("")
             select_action = input(f"""\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     What do you want to do?
+
     1. Attack the {monster.name}.
     2. Do nothing.
     3. Flee for your life!
     4. Use an item.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     > """)
 
             if select_action == "1":
@@ -400,15 +435,13 @@ def main():
                 play_again = False
                 while play_again == False:
                     time.sleep(1.5)
-                    next_monster = input("\nWould you like to take on another monster? Enter 'y' for 'yes' or 'n' to exit the game: ")
+                    next_monster = input("\nWould you like to continue your adventure? Enter 'y' for 'yes' or 'n' to exit the game: ")
                     if next_monster == "y":
-                        player_char.health += 5
-                        player_char.power += 1
                         player_char.level += 1
                         play_again = True
                     
                     elif next_monster == "n":
-                        print("\nThanks for playing!\nSee if you can reach a higher level next time!\n===Game over.===\n")
+                        print("\nThanks for playing!\nSee if you can reach a higher level next time!\n===Game Over===\n")
                         break
                     else:
                         invalid_choice()
